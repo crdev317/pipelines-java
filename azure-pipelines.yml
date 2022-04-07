@@ -1,22 +1,15 @@
-# Maven
-
 trigger:
-- master
-#Part 1: choosing a platform to build on
-#pool:
-#change the platform to build on
-#  vmImage: "windows-latest"
+- main
 
-#Part 2: build across multiple platforms
 strategy:
   matrix:
-    linux:
+    jdk10_linux:
       imageName: "ubuntu-latest"
-    mac:
-      imageName: "macOS-latest"
-    windows:
+      jdkVersion: "1.10"
+    jdk11_windows:
       imageName: "windows-latest"
-  maxParallel: 3
+      jdkVersionOption: $(jdkVersion)
+  maxParallel: 2
 
 pool:
   vmImage: $(imageName)
@@ -24,14 +17,14 @@ pool:
 steps:
 - task: Maven@3
   inputs:
-    mavenPomFile: 'pom.xml'
-    mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.8'
-    jdkArchitectureOption: 'x64'
+    mavenPomFile: "pom.xml"
+    mavenOptions: "-Xmx3072m"
+    javaHomeOption: "JDKVersion"
+    jdkVersionOption: $(jdkVersion)
+    jdkArchitectureOption: "x64"
     publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
+    testResultsFiles: "**/TEST-*.xml"
+    goals: "package"
 
 #add task for handling testing and publishing results
 - task: PublishCodeCoverageResults@1
@@ -39,10 +32,4 @@ steps:
     codeCoverageTool: 'JaCoCo'
     summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/site/jacoco/jacoco.xml'
     reportDirectory: '$(System.DefaultWorkingDirectory)/**/site/jacoco'
-    failIfCoverageEmpty: true
-- task: PublishCodeCoverageResults@1
-  inputs:
-    codeCoverageTool: "JaCoCo"
-    summaryFileLocation: "$(System.DefaultWorkingDirectory)/**/site/jacoco/jacoco.xml"
-    reportDirectory: "$(System.DefaultWorkingDirectory)/**/site/jacoco"
     failIfCoverageEmpty: true
